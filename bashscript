@@ -1,0 +1,262 @@
+command in a variable:
+d=$(pwd)
+echo $d
+
+numerical expression in a variable:
+d=$((2/3))
+For floating calculation use bc -l instead:
+d=$(echo 2/3 | bc -l)
+
+String comparison, double square brackets
+d=[[ $a > $b ]]
+note the spaces
+d=[[ $a == $b ]]
+
+For number comparisons, use keywords:
+d=[[ 1 -lt 2 ]]
+echo $?
+d=[[ 2 -le 2 ]]
+echo $?
+
+To check null (-z) or not (-n):
+e=""
+[[ -z $e ]]
+
+&& || ! works
+
+String operations:
+a="hello"
+b="world"
+concatanate with: c=$a$b
+
+echo $(#a) gives  size of a.
+
+substring: echo $(a:4) gets from 5th character of a..i.e o
+echo $(c:2:3) gets 3 number of characters from 2. i.e. lowo
+use negative number and count from end of the string
+eg echo $(a: -2) gets lo
+echo $(a: -2:1) gets l
+notice the space when using minus
+
+replace string:
+fruit="apple banana banana cherry"
+echo ${fruit/searchstring/replacestring}
+echo ${fruit/banana/durian}
+replaces only one occurance, to replace all occurance, change / before banana to double slash //
+
+if you use # in front of the term, it will only replace the term if its on the very first.
+similarly if you use ! in front, it will only replace it if it is the last term
+eg echo ${fruit/#banana/durian} does not replace anything.
+o
+
+array
+a=()
+empty array
+b=("apple" "banana" "cherry") creates an array
+echo ${b[2]} prints the 2nd element fo the array
+b[5]="kiwi" adds to the fifth element of the array`
+b+=("mango") adds to the array
+echo ${b[@]}  prints the whole array
+echo ${b[@]: -1}  gets the last array
+
+associative array
+declare -A myarray
+myarray[color]=blue
+myarray["office building"]="HQ West"
+
+echo ${myarray["office building"]} is ${myarray[color]}
+
+working with text files
+using while loop
+i=1
+while read f; do
+	echo "Line $i: $f"
+	((i++))
+done < file.txt
+
+
+heredoc
+
+cat <<- EndOfText
+This is a
+multiline
+text string
+EndOfText
+
+using <<- removes leading tabs from the text.
+otherwise tabs will be present.
+
+ftp -n <<- DoneWithTheUpdate
+	open mirrors.xmission.com
+	user anonymous nothinghere
+	ascii
+	cd gutenberg
+	get GUTINDEX.01
+	bye
+DoneWithTheUpdate
+
+
+'if' statement
+if expression; then
+or if expression
+then 
+	eho "true"
+elif expression2; then
+	echo "ex is false"
+fi
+
+a=5
+if [ $a -gt 4 ]; then
+	echo $a is greater than 4!
+else
+	echo $a is not greater than 4!
+fi
+
+checking to see if a string contains numbers using regex
+a="This is my string"
+if [[ $a =~ [0-9]+ ]]; then
+	echo "There are numbers in the string: $a"
+else
+	echo "There are no numbers in the string: $a"
+fi
+
+While loop
+i=0
+while [ $i -le 10 ]; do
+	echo i:$i
+	((i+=1))
+done
+
+j=0
+until [ $j -ge 10 ]; do
+	echo j:$j
+	((j+=1))
+done
+
+For loop
+for i in 1 2 3
+do
+	echo $i
+done
+
+for i in {1..100..2}
+
+for (( i=1; i<=10; i++ ))
+do
+	echo $i
+done
+
+arr=("apple" "banana" "cherry")
+for i in ${arr[@]}
+do
+	echo $i
+done
+
+for assc. array
+declare -A arr
+arr["name"]="Scott"
+arr["id"]="1234"
+for i in "${!arr[@]}"
+do
+	echo "$i: ${arr[$i]}"
+done
+
+using for loop with command substitution
+for i in $(ls)
+do
+	echo "$i"
+done
+
+FUNCTION
+function greet {
+	echo "Hi $1!"
+}
+echo "And now, a greeting!"
+greet Scott
+
+
+function numberthings {
+	i=1
+	for f in $@; do
+		echo $i: $f
+		((i+=1))
+	done
+}
+
+CASE
+a="dog"
+case $a in 
+	cat) echo "Feline";;
+	dog|puppy) echo "Canine";;
+	*) echo "No match!";;
+esac
+
+WORKING WITH USER INPUTS
+
+flags
+while getopts u:p: option; do
+	case $option in
+		u) user=$OPTARG;;
+		p) pass=$OPTARG;;
+	esac
+done
+echo "User: $user / Pass: $pass"
+
+OPTIONS
+echo "What is your name?"
+read name
+
+echo "What is your password?"
+read -s pass    (won't show the password s stands for silent)
+
+read -p "What's your favorite animal? " animal  (writes out a prompt before the input area)
+
+echo name: $name, pass: $pass, animal: $animal
+
+select animal in "cat" "dog" "bird" "fish" "quit"
+do
+	case $option in 
+	cat) echo "Cats like to sleep.";;
+	dog) echo "Dogs like to play catch.";;
+	quit) break;;
+	*) echo "I'm not sure what that is.";;
+	esac
+done
+
+ERROR TOLERANCE
+if [ $# -lt 3]; then
+	cat <<- EOM
+	This command requires three arguments:
+	username, userid, and favorite number.
+	EOM
+else	
+	# the program goes here
+	echo "Username: $1"
+	echo "UserID: $2"
+	echo "Favorite number: $3"
+fi
+
+OR
+
+read -p "Favorite animal?" a
+while [[ -z "$a" ]]; do
+	read -p "I need an answer! " a
+done
+echo "$a was selected."
+
+Have a default answer
+
+read -p "Favorite animal? [cat]" a
+while [[ -z "$a" ]]; do
+	a="cat"
+done
+echo "$a was selected."
+
+
+validation - rejecting input that does not match a regex
+
+read -p "What year? [nnnn] " a
+while [[ ! $a =~ [0-9]{4} ]]; do
+	read -p "A year, please! [nnnn] " a
+done
+echo "Selected year: $a"

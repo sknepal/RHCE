@@ -1,0 +1,50 @@
+Expansions
+
+Brace expansion
+
+touch {apple, banana, orange}
+touch file_{1..100}
+with zero padding: touch file_{01..100}
+
+echo {1..10..2}
+get numbers between 1 and 10, counting by 2.
+
+echo {A..z}
+
+echo {w..d..2}
+
+
+Number of output
+ls -1 | wc -l
+
+View top and bottom of file:
+head
+tail
+
+cp -v * ../otherfolder 1>../success.txt 2>../error.txt
+1 and 2 represent standard output and standard error respectively.
+> indicates redirecting them somewhere else.
+
+Also:
+cp -v * ../otherfolder &>../log.txt (Same thing as earlier)
+
+bitbucket:
+ls > /dev/null
+
+Using awk to just get a column (12)
+grep -i break-in auth.log | awk {'print $12'}
+
+Set ping count
+ping -c 1
+
+Get response time only from ping result
+ping -c 1 example.com | grep 'bytes from' | cut -d = -f 4
+
+BASH Script
+
+declare -i a=123  (integer)
+declare -r b=123 (read only) 
+declare -l c="ABCD" (convert to lower case)
+declare -u d="abcd" (convert to upper case)
+
+tldp.org/LDP/abs/html/internalvariables.html

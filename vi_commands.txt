@@ -1,0 +1,193 @@
+:w : write
+:wq : write and quit
+:w filename : writes out a copy of the file to filename, but not the original file.
+vi filename1 filename2 : edit multiple files
+:n : to move to next file while editing multiple files.
+:N : to move back to the earlier file
+:rew : rewind all the way to the beginning
+:n! : force vi to go to next file without writing
+:r filename: put the content of the filename to the current file's curosor position
+
+Movement commands
+hjkl
+Enter : go to the beginning of next line
+- : go to the beginning of previous line
+backspace : back one character
+space : forward one character
+arrow keys
+
+You can use a number with the command to repeat it
+5space = go 5 spaces forward
+10j = go down 10 lines.
+
+Move by words, sentences and paragraphs
+w : forward a word
+b : backward a word
+e : forward to the end of current or next word
+) : forward a sentence
+( : backward a sentence
+} : forward a paragraph
+{ : backward a paragraph
+
+Moving by lines
+^ : beginning of line
+$ : End of line
+1G : First line of file
+G : last line of file
+nG : Line n of file
+% : move to matching parenthesis/brace
+Ctrl+G to find to display line number and status
+
+Scrolling
+Ctrl+e : scroll down one line
+Ctrl + y : scroll up one line
+Ctrl + d : Scroll down half a screen
+Ctrl + u : Scroll up half a screen
+Ctrl + f : Scroll down one screen ("forward")
+Ctrl + b : Scroll up one screen ("back")
+
+Inserting text
+i : insert before curser
+I : insert at beginning of line
+a : Append after cursor
+A : append at end of line
+o : Open a new line below
+O : open a new line above
+
+Deleting text
+x : current characte
+dd : Current line
+dw : Current word(deletes the whitespace after the current word as well))
+de : to end of word(deletes upto the whitespace leading to the next word)
+d^ : to beginning of line
+d$ : to end of line (also D)
+dx : where x is any movement command. 
+can use a number before any deletion command (5dw to delete five words, 5 dd to delete 5 lines)
+
+Changing text
+r : current character *(r leaves you in command mode.)
+s : current character(leave you in insert mode)
+cc : current line
+cw : current word (also ce)
+c^ : to beginning of line
+c$ : to end of line (C)
+can use c with any number or any movement cmd
+
+Miscellaneous Editing Commands
+R : enters overwrite mode
+~ : changes the case of the character at the cursor
+J : joins the next line to the current line
+can use a number before any of these.
+
+Undo, Redo, and Repeat
+u : undoes last change
+ctrl + r : redo last change
+U : undoes all changes to current line
+. : repeats line change
+multiple undo and redo are vim features
+
+Delete, Yank, and Put
+dd : Delete (cut) line
+yy : yank (copy) line
+yb, yw, ye etc..
+dx : delete an amount
+yx : yank an amount
+p : put after cursor
+P : put before cursor
+As with delete, y can use number or any movement cmd
+
+Searching
+/text searches for text
+?text searches backward for text
+n repeats previous search
+N repeats previous search in opposite direction
+
+Regex
+. : matches any single character
+/a.c matches "abc", "axc" etc
+
+\ : Removes spcial meaning
+/a\.c matches "a.c"
+/a\\c match "a\c"
+/a\/c matches "a/c"
+
+^ and $ Match line start and end
+/^abc matches line beginning with "abcd"
+/^abc does not match line beginning with "dabc"
+/abc$ matches line ending with "dabc"
+/abc$ does not match line ending with "abcd"
+
+[] Matches any character in set
+/a[xyz]c matches "axc" 
+/a[xyz]c does not match "axyzc"
+/a[a-z]c matches "abc"
+/a[a-zA-Z]c matches "aBc"
+/a[^a-z]c does not match "abc"
+
+* Matches zero or more repeats
+/ab*c matches "abc"
+/ab*c matches "abbbbbc"
+/ab*c matches ac
+
+\(\) repeats multiple items
+/\(ab\)*c matches "ababababababc"
+
+Greediness
+/<.*> matches all of "<i>italic text</i>"
+/<[^>]*> matches only "<i>italic text</i>"
+
+Search and Replace
+:s/ old / new / replaces first old with new on current line
+(only the first occurence)
+for all occurence append g
+:s / old / new / g
+
+:%s/old/new/ replaces first old with new on every line of file
+:%s/old/new/g replaces every occurence of old with new on every line of the file
+
+/ can be any character
+old is a regular expression
+new is generally a string, except...
+	& is replaced with found text
+	\n is replaced with the text found for nth \(..\)
+	n is number
+
+eg: :%s/the[ym]/(&)/g --- if searched text found, put it in bracket
+grouping :
+:%s/\(they\)\(were\)/\2 \1/ -- make they were to were they 
+
+Indenting, Auto-indent, Word Wrap
+>> indents current line performed by single tab stop
+<< outdents current line performed by single tab stop
+As with delete, can use number or movement command
+:se ai enables auto-indent
+:se noai disables it
+:se wm=8 enables wrap margin of 8 characters
+:se wm=0 disables it
+
+!! : filter current line through text
+5!! : filter 5 lines
+!% : filters to matching parenthesis
+!} : filters next paragraph
+!{ : filters previous paragraph
+useful commands include fmt, tr, grep, sed, and awk
+eg: !! tr a-z A-Z
+5!! tr a-z A-Z
+!! fmt (performs wordwrap)
+
+Using Line Ranges with Commands
+: line, line cmd performs cmd on line(s)
+n Line number n
+. current line
+$ last line of file
+'x Mark x(set with m)
+/re/ regular ex
+% All lines(same as 1,$)
+cmd includes s,d,y,c,!,>, and others
+
+:1,. d (from the first line to current line, delete)
+:.,$ s/t/T/g (from current line to end, replace all the lowercase t with uppercase T)
+:/marched/,/half-way/ ! tr a-z A-Z (looks through the file for line containing marched, and search for a line containing half-way passing it to tr, making it uppercase)
+ma : set marks a
+'a : go to mark a
+: 'a,'b >  (from the ine marked as a to the line marked as b, indent)

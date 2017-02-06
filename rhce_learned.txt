@@ -1,0 +1,446 @@
+Formatting a USB drive
+mount : list of devices in use
+tail -f /var/log/syslog : syslog gets printed on the screen
+plug-in and plug-out the usb, you'll know which working directory the flash drive belongs to for eg. dev/sdc1
+
+then: blkid dev/sdc1 : to understand the file system of the flash drive.
+
+# FAT
+mkfs.vfat /dev/sdxy # /dev/sdxy is your usb
+
+# Or for ext4
+mkfs.ext4 /dev/sdxy 
+
+IF formatting does not overwrite data, use scrub /dev/sdc1
+
+
+
+USER
+
+
+su [username] : login to that user name. does not require password if you are changing to any other user from root user.
+
+useradd [username] : add user
+useradd -c "Gordon Freeman" gfreeman : Comment = Gordon Freeman
+userdel -r gfreeman : deletes mailbox and home directory
+
+useradd -s /bin/tcsh avance : change default shell for the avance user to c shell.
+
+change a user's default home directory to home/accounting/
+--mkdir /home/accounting
+--useradd -c "Test User" -d /home/accounting/blee 
+--ls /home/accounting 
+
+ls -lh = long list + human readable size format
+
+usermod -c "Alyx Vance" vance : make modifications.
+
+rm -rf /directory : remove directory
+
+
+
+FILE COMPRESSION
+
+cf = create tar from file
+v = verbal info as to what the command is doing
+
+tar -cvf stuff.tar compress-me/
+ls -lh [tarfilename] : lists tar file name and size
+
+gzip compression
+gzip stuff.tar
+
+all at once step: tar -czvf stuff.tar.gz compress-me/
+or tar -czvf stuff.tgz compress-me/
+
+list content of tar files:
+tar -tf stuff.tar.gz
+
+bzip compression:
+tar -cjvf stuff.tar.bz2 compress-me/
+
+extract:
+tar -xzvf stuff.tar.gz
+for bzip, use -xjvf
+x: extract
+
+
+ELEVATING PRIVILEDGES
+su - : access as login shell
+echo $PATH
+
+visudo : edit /etc/sudoers, has built in error checking so no broken sudoers file
+
+add users to use sudo command : /etc/sudoers
+
+
+
+PASSWORD CONTROL
+
+useradd -p Test123 newuser^C : create newuser with password test123
+
+passwd [username] : change password of user.
+passwd -l [username] : locking an account.
+passwd -u [username]: unlock an account.
+chage -M 90 [username] : before 90 days, user account needs to be changed.
+chage -E 2012-5-25 [username]: expires account on 2012-5-25.
+chage -l [username] : all the policies set up for account.
+
+chage -W 2 [username] : 2 days prior to the expiry, user will receive a warning.
+
+
+
+
+GROUP ADMINISTRATION
+
+how to setup a collaborative directory.
+
+
+groupadd research
+usermod -G research avance : add avance to the research group
+-G : to add avance to research as a supplementary group
+(on red hat each user primarily belongs to a group with the same name as username. so with G command, the user will belong to their own private primary group as well as the research supplementary group)
+
+avance should run:
+newgrp research (either login or run this command for the group changes to take effect)
+
+groups : list the group the user belongs to.
+
+useradd -G research tminchin  : add user in the research group
+
+groupmod -n researchers research : rename group
+groupmod -g 1000 researchers : change group id
+id avance : shows the userid/group id the user is member of.
+
+id : lists your user id / group id
+
+GET A NON-ROOT TO ADD USERS TO GROUP
+gpasswd -A avance researchers : avance to be researchers group admin. (-A can only be used by root, root here, adds avance as group admin.)
+su - avance
+gpasswd -a karmstrong researchers : add user (for non-root user, use -a. avance acting as adminadds karmstrong to the group)
+
+groupdel researchers
+
+
+
+ACCOUNT CONFIGURATION FILES
+
+cat /etc/passwd : user account/pass file
+
+username:password(encrypted and stored in shadow):userid:groupid:comment:user's home directory:default-login-shell
+
+cat /etc/shadow : contains hashed passwords, only root can read
+
+username:password(encrypted, exclamation means no password):no of days since jan 1st 1970 (unix time) since the password was last changed:minimum password age (in days) before user can change the password again (0 means no min password age): no of days after which the user will need to change the password (if passed by, can login but need to change it after logging in):password warning period prior to expiration warning is shown:password inactivity period, max no. of days pass can be accepted by the system after it has expired (empty field means there is not any inactivity period in place): accounts expiration date (no of days since unix time, if elapsed, user cannot login whether password matches or not, empty means account never expires)
+
+less /etc/group
+group name: group password:group id:members of the group
+
+less /etc/gshadow
+group name: group password:comma separated list of group admins: csl of users of group
+
+view man pages
+man 5 shadow
+replace shadow with name of the file that you want to look up such as group, gshadow, passwd
+
+
+
+
+BASIC PERMISSIONS
+
+read : 4
+write : 2
+exec : 1
+
+- : file
+d : dir
+owner group world(other)
+
+
+modify file/folder permission
+
+give write permission to other users
+
+chmod o+w /home/avance/vim-test.txt
+o : other, w : write permission
+
+only root can read/write:
+chmod 600 /home/avance/vim-test.txt
+
+default permissions come from: umask
+gets its value from /se/profile script
+
+user default file permission: take the default file permission 666, and subtract it from umask(i.e. 0022) to get 644 user default file permission.
+
+test out by creating empty file
+
+a directory's default permission is 777. subtracting 022 we get 755.
+
+OWNERSHIP
+( -rw ----- a file can be changed only by the one who owns it.)
+root can change ownership of a file, and assign it to any user.
+
+chown : change ownership
+
+chown avance /home/avance/vim-test.txt (changes user owner only)
+
+to change both user and group owner:
+chown avance:avance /home/avance/vim-text.txt
+
+also can change group ownership by using chgrp command
+chgrp research /home/avance/vim-text.txt
+
+ls -ld /home/avance/notes
+
+can use the same commands to change ownership of directory
+chown avance:avance /home/avance/notes
+
+run chown recursively over a directory to grant ownership for all files underneath it:
+chown -R avance:avance /home/avance/notes
+
+
+change attribute : chattr 
++i: immutable file attribute.
+
+chattr +i /home/avance/vim-test.txt (no one can modify or delete it, not even root)
+
+lsattr : view attribute
+---i--------e-- : i means immutable attribute has been set.
+
+To delete the file:
+chattr -i /home/avance/vim-test.txt
+lsattr /home/avance/vim-test.txt
+rm /home/avance/vim-test.txt
+
+man 1 chattr : different types of attribute that can be applied to files.
+
+GROUP DIRECTORIES
+
+setup a directory for group collaboration
+
+mkdir /home/research
+chown nobody:research /home/research : grant ownership of the folder to just the research group
+ls -ld /home/research
+chmod 2070 /home/research : 2 in the front SGID bit (set group ID)
+ls -ld /home/research 
+you will notice 's' instead of 'x'.
+
+for user use SUID and 4.
+
+su -karmstrong
+mkdir /home/research/test1/
+ls -ld /home/research/test1/
+kamstrong has created a folder that is owned by research group and same is with the files.
+
+su - avance (login as avance who is member of research group, should have the permission to read and modify).
+ls -l /home/research/test1/to-avance.txt
+
+su - tminchin (not belonging to research group, should not be able to access files belonging to research group)
+groups
+cat /home/research/test1/to-avance.txt
+
+
+NETWORK DEVICES
+
+ifconfig : network interface, ip address, subnet mask for each, state - up or down and other info.
+
+default network interface : lo
+local loopback interface. ip : 127.0.0.1
+eth0 : ethernet interface.
+wlan0 : wireless interface, wlan1 for addition etc.
+vmnet0: NATed interface for virtual machines
+ppp : point to point protocal interface
+
+any of these interface configured via script files in /etc/sysconfig/network-scripts
+
+cat ifcfg-lo:
+Device : name of the device.
+IPaddr:
+Subnetmask
+Onboot : yes if we want to start it when device boots
+name: alias name
+
+cat ifcfg-eth0
+NM_Controlled : yes if network manager service is handling the device.
+Type: ethernet 
+bootproto : none since network manager is handling the device. boot protocal for the interface. other options would be dhcp for automatic IP configuration or static for static IP configuration
+IPV4_Failure_FATAL=yes: network services would not start for this interface if there is no ipv4 network available on eth0
+HWADDR : mac address
+
+
+system-config-network (Network manager replaced it, but still available, disable NM to use it)
+
+service NetworkManager stop (stop NM service)
+
+chkconfig NetworkManager off (prevent NM form starting in boot time)
+NM icon is no longer in panel. now we can run system-config-network utility.
+
+system-config-network (-tui)
+
+NETWORK COMMANDS
+viewing and adjusting network settings, better to stop NM or it will interfere with the commands.
+
+ifconfig : old ip config tools, list up interfaces
+ifconfig -a : all interfaces, whether up or down.
+ifconfig eth1 172.16.10.52 netmask 255.255.255.0 : assign ip to an interface
+
+ifconfig eth1 : take a look at eth1
+(inet addr : IP address)
+
+any ip-address configuration made using this command will not survive a reboot.
+
+if need to make permanent changes, you need to modify network-scripts.
+
+ifdown eth1: shuts down the interface 
+ifdown eth1 boot (permanent change, keeps eth1 down on system reboot)
+
+ifup eth1 : brings up eth1 interface
+ifup eth1 boot (start on reboot)
+
+route : to view current routing table
+routeadd default gw 192.168.75.2 dev eth0 (adds default gateway pointing to the address we set up and is using eth0)
+
+ip : new command tool to work with network interfaces, replacement for route & ifconfig
+
+ip addr show (lists current devices, and IP addresses)
+ip route (view current routing table)
+ip -s link (current interface statistics such as dropped packets and connection errors, useful in finding out if we have faulty cable or network card. we are looking at the no. of errors or dropped packets.)
+
+man ip : ip man page
+
+dhclient : an automated IP assignment from DHCP server.
+dhclient name of interface i.e dhclient eth1
+ip addr show eth1 (list IP of eth1)
+
+SYSTEM-CONFIG-FIREWALL
+this utility overrides changes made to iptable files.
+
+etc/services : list of predefined services along with their port no. and protocals associated with them.
+
+masquerading : setup a rhel system to act as a router.
+
+ICMP (Internet Control Message Protocol) used to send error messages between networked computers, and for informational messages such as ping requests and replies. Mark the ICMP types to be rejected from Firewall Configuration.
+
+terminal interface for firewall utility:
+system-config-firewall-tui
+
+anything modified with tui utility will override changes made to etc/sysconfig/iptables file.
+
+IP-TABLES
+
+netfilter is the standard firewall system for linux. control the configuration of netfilter with iptables command.
+
+iptables rules (i.e. firewall rules) are stored in /etc/sysconfig/iptables
+
+less /etc/sysconfig/iptables
+if changes are made to this file, then opening up system-config-firewall will lose all the changes that were made by hand on this file. so make sure not to make changes from system-config-firewall if changes are already made from the file. or uninstall system-config-firewall.
+
+restart firewall aftermaking changes to iptables
+service iptables restart
+
+check to see if role is in place:
+iptables -L (list all roles that are loaded into memory)
+
+iptables -F (testing something, such as new server install, and you believe firewall rules are blocking something do flush rules)
+
+service iptables restart (restart iptables service to have firewall running after finishing troubleshooting)
+
+iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+(-I insert, and not append, to make sure it gets checked before the reject all protocal rules - ftp)
+iptables -L (To check if the port is open)
+
+service iptables restart (simulate system restart by restarting iptables)
+
+iptables -L (ftp port is no longer open, because when we use iptables we only modify rules on the running system. once restarted, rules get flushed and the default one get read from etc/sysconfig/iptables) 
+
+In order to make it stick, we need to reopen the port:
+iptables -I INPUT -p tcp --dport 21 -j ACCEPT
+and then save the rule with the service command for iptables:
+service iptables save
+
+iptables -L
+ftp is open
+service iptables restart
+iptables -L
+ftp is still open
+
+if no longer running ftp server on the system, to close the port, we can delete the rule:
+iptables -D INPUT -p tcp --dport 21 -j ACCEPT
+iptables -L
+service iptables save
+
+iptables man page
+
+RPM FILES
+rpm db: /var/lib/rpm
+
+YUM COMMAND
+yum search packagename
+yum info packagename
+yum install packagename
+yum remove packagename
+yum grouplist (list different group of packages available to install; package groups are collection of softwares for a particular task or setup such as Welsh language support, or a full group of software needed to run a database server.)
+Web server package is available so lets install it.
+yum groupinstall "Web Server" (install all dependencies required)
+
+We have installed a webserver.
+we can uninstall it by:
+yum groupremove "Web Server"
+
+man page
+
+YUM repository
+how to configure a yum repository file on a rhel system
+
+yum repository location: /etc/yum.repos.d/
+repository files end in .repo extension
+
+cat localnet.repo
+[localnet] : one word identifier, no two repository can have same id.
+name : name of repository, what gets displayed in the list of repositories yum communications with when you run yum command.
+baseurl : location that contains the repo data file (locally or over network connection). repo data file contains the info about location and groupings of packages that yum uses to find and install software, commonly ftp, http and can also point to local directory depending upon the settings.
+enabled : whether repo is enabled or not. 1 is enabled
+gpgcheck : if we are performing GNU privacy guard check on packages we download, since we are getting our packages from trusted source i.e. locally we have a 0 for it. i.e disabled.
+gpgkey : url location of gpgkey to check integrity of files. (we are using local key here)
+
+man yum.conf
+search for repository : /\[repository]
+you can see the example repository file and the options
+
+RPM Command
+install individual packages, can run into issue while installing multiple packages. especially if dependencies are missing.
+
+yum command eases us of dependency problems. 
+
+rpm -i lftp-4.0...rpm (-i to install)
+rpm -qa | grep lftp (check whether lftp is installed, q query the database, a searches through all packages)
+rpm -e lftp (remove package, don't have to specify full package name, lftp is enough)
+while running query, lftp won't be listed.
+
+rpm -Uvh lftp-4.0....rpm (U upgrade if installed or not installed then go ahead and install it, v verbose output, h hashmarks that updates us about installation progress)
+
+rpm -qd lftp (search for documentations and their locations that got installed with the package i.e. lftp)
+
+rpm -qc lftp (to locate the configuration file that got installed with the package, i.e. lftp)
+
+rpm -qi lftp (view information about the installed package i.e lftp)
+
+go through man pages.
+
+PackageKit
+GUI : System > Administration > Add/Remove Software
+
+Updating the kernel
+
+uname -r (gives kernel version and release number)
+
+when you update the kernel on system, you are actually going to install new one. an upgrade will overwrite existing kernel, which might not be good idea for your system: for eg. if you have a specialized software that only works with a specific kernel, you don't want to lose the kernel that it works with. you may only want to use the new kernel to try out the software and eventually the software vendor may support the new kernel. the biggest reason is in the event the new kernel will not boot the system..if you overwrite, you no longer have the kernel that used to boot your system.
+
+/boot/grub/grub.conf - grand unified boot loader uses this file to determine what kernel version to boot the system with
+
+yum installs a new kernel rather than update it.
+if using rpm, use -i to install, not -U to update.
+
+yum install kernel (new kernel will be downloaded and installed)
+2.6.32-431.el6.x86_64
+
